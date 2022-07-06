@@ -9,6 +9,7 @@ specifiers:
   '@vue/test-utils': ^2.0.1
   '@vueuse/core': ^8.7.5
   eslint: ^8.18.0
+  html-to-image: ^1.9.0
   jsdom: ^20.0.0
   pnpm: ^7.4.0
   pptxgenjs: ^3.10.0
@@ -25,6 +26,7 @@ specifiers:
 
 dependencies:
   '@vueuse/core': 8.7.5_vue@3.2.37
+  html-to-image: 1.9.0
   pptxgenjs: 3.10.0
   vue: 3.2.37
   vue-router: 4.0.16_vue@3.2.37
@@ -2198,6 +2200,10 @@ packages:
     dependencies:
       whatwg-encoding: 2.0.0
     dev: true
+
+  /html-to-image/1.9.0:
+    resolution: {integrity: sha512-9gaDCIYg62Ek07F2pBk76AHgYZ2gxq2YALU7rK3gNCqXuhu6cWzsOQqM7qGbjZiOzxGzrU1deDqZpAod2NEwbA==}
+    dev: false
 
   /htmlparser2/7.2.0:
     resolution: {integrity: sha512-H7MImA4MS6cw7nbyURtLPO1Tms7C5H602LRETv95z1MxO/7CP7rDVROehUYeYBUYEON94NXXDEPmZuq+hX4sog==}

@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@vueuse/core": "^8.7.5",
+    "html-to-image": "^1.9.0",
     "pptxgenjs": "^3.10.0",
     "vue": "^3.2.37",
     "vue-router": "^4.0.16"
