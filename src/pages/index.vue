@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import PptxGenJS from 'PptxGenJS'
+// import PptxGenJS from 'PptxGenJS'
+import PptxGenJS from 'pptxgenjs'
 import tinycolor from 'tinycolor2' // https://github.com/bgrins/TinyColor
 import * as htmlToImage from 'html-to-image'
 const canvasLife = ref<HTMLElement | null>(null)
@@ -7,25 +8,27 @@ const listType = ref([
   {
     type: 'LAYOUT_4x3',
     text: '4x3',
-    viewportRatio: 0.75,
+    width: 826,
+    height: 620,
   },
   {
     type: 'LAYOUT_16x9',
     text: '16x9',
-    viewportRatio: 0.5625,
+    width: 1102,
+    height: 620,
   },
   {
     type: 'LAYOUT_16x10',
     text: '16x10',
-    viewportRatio: 0.625,
-  },
-  {
-    type: 'LAYOUT_WIDE',
-    text: 'wide',
-    viewportRatio: 1,
+    width: 992,
+    height: 620,
   },
 ])
 const chooseType = ref(0)
+const pptCanvasWH = reactive({
+  width: listType.value[chooseType.value].width,
+  height: listType.value[chooseType.value].height,
+})
 async function createImage(dataUrl: string): Promise<Record<string, any>> {
   return new Promise((resolve, reject) => {
     const img = new Image()
@@ -90,8 +93,8 @@ function htmlToPptx() {
       const position = listtree[key].cssStyle.getBoundingClientRect() as any
       const options: PptxGenJS.ImageProps = {
         path: el,
-        x: (position.left - prePos.left) / 100 * listType.value[chooseType.value].viewportRatio,
-        y: (position.top - prePos.top) / 100 * listType.value[chooseType.value].viewportRatio,
+        x: (position.left - prePos.left) / 100,
+        y: (position.top - prePos.top) / 100,
         w: position.width / 100,
         h: position.height / 100,
       }
@@ -113,6 +116,8 @@ function htmlToPptx() {
 }
 function checkButton(idx: number) {
   chooseType.value = idx
+  pptCanvasWH.width = listType.value[idx].width
+  pptCanvasWH.height = listType.value[idx].height
 }
 </script>
 
@@ -126,7 +131,12 @@ function checkButton(idx: number) {
         下载PPTX
       </button>
     </div>
-    <div ref="canvasLife" bg-gray-200 b-gray-300 b-width-2 data-source="bg">
+    <div
+      ref="canvasLife" bg-gray-200 b-gray-300 b-width-2 data-source="bg" ma :style="{
+        width: `${pptCanvasWH.width}px`,
+        height: `${pptCanvasWH.height}px`,
+      }"
+    >
       <img opacity60 ma src="https://picsum.photos/500" alt="图片" mb5 mt5 data-source="image">
       <p color-black mb1 data-source="text">
         测试文字
