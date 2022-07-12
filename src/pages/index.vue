@@ -1,6 +1,6 @@
 <script setup lang="ts">
-// import PptxGenJS from 'PptxGenJS' // runtime
-import PptxGenJS from 'pptxgenjs' // browser time
+import PptxGenJS from 'PptxGenJS' // runtime
+// import PptxGenJS from 'pptxgenjs' // browser time
 import tinycolor from 'tinycolor2' // https://github.com/bgrins/TinyColor
 import * as htmlToImage from 'html-to-image'
 const canvasLife = ref<HTMLElement | null>(null)
@@ -69,10 +69,10 @@ const formatColor = (_color: string) => {
   }
 }
 // children []
-const lifeChildren: Array<Element> = []
-function recursionFn(life: Element) {
+const lifeChildren: Array<HTMLElement> = []
+function recursionFn(life: HTMLElement) {
   lifeChildren.push(life)
-  const nodeList = Array.from(life!.children)
+  const nodeList = Array.from(life!.children) as Array<HTMLElement>
   if (life.hasChildNodes()) {
     for (const parg of nodeList) {
       if (parg.hasChildNodes())
@@ -94,6 +94,7 @@ function htmlToPptx() {
   const life = canvasLife.value! as HTMLElement
   recursionFn(life)
   const slide = pptx.addSlide() // 创建幻灯片
+  slide.addNotes('pptist') // 添加幻灯片备注;
   const listtree = {} as Record<string, any>
   let index = -1
   for (const ele of lifeChildren) {
@@ -130,39 +131,86 @@ function htmlToPptx() {
     }
     else if (listtree[key].cssStyle.getAttribute('data-source') === 'shapes') { // 图形
       // ShapeType.rect
-      // const fillColor = ele.getPropertyValue('color') as any
-      // const opacity = ele.getPropertyValue('opacity') as any === undefined ? 1 : ele.getPropertyValue('opacity') as any
-      // const points = [] as any[]
-      // const options: PptxGenJS.ShapeProps = {
-      //   x: (position.left - prePos.left) / 100,
-      //   y: (position.top - prePos.top) / 100,
-      //   w: position.width / 100,
-      //   h: position.height / 100,
-      //   fill: { color: fillColor.color, transparency: (1 - fillColor.alpha * opacity) * 100 },
-      //   points,
-      // }
-      // slide.addShape('custGeom' as PptxGenJS.ShapeType, options)
-      slide.addShape(pptx.shapes.RECTANGLE, { x: 5.7, y: 0.8, w: 1.5, h: 3.0, fill: { color: pptx.colors.ACCENT4 }, rotate: 45 })
-    }
-    else if (listtree[key].cssStyle.getAttribute('data-source') === 'text') { // 文字
-      const textProps = listtree[key].cssStyle.textContent
-      const options: PptxGenJS.TextPropsOptions = {
+      const fillColor = formatColor(ele.getPropertyValue('border-color') as any)
+      const bgColor = formatColor(ele.getPropertyValue('background-color') as any)
+      const opacity = ele.getPropertyValue('opacity') as any === undefined ? 1 : ele.getPropertyValue('opacity') as any
+      console.log(opacity)
+      const points = [
+        { x: 0, y: 0, moveTo: true },
+        { x: position.width / 100, y: 0, moveTo: true },
+        { x: position.width / 100, y: position.height / 100, moveTo: true },
+        { x: 0, y: position.height / 100, moveTo: true },
+        { x: 0.0, y: 0.0, curve: { type: 'quadratic', x1: 1.0, y1: 0.5 } },
+      ] as any[]
+      const options: PptxGenJS.ShapeProps = {
         x: (position.left - prePos.left) / 100,
         y: (position.top - prePos.top) / 100,
         w: position.width / 100,
         h: position.height / 100,
+        line: { color: fillColor.color, width: 1 },
+        fill: { color: bgColor.color, transparency: (1 - bgColor.alpha * opacity) * 100 },
+        points,
+      }
+      slide.addShape('CUSTOM_SHAPE' as PptxGenJS.ShapeType, options)
+      // slide.addShape(pptx.shapes.RECTANGLE, { x: 5.7, y: 0.8, w: 1.5, h: 3.0, fill: { color: pptx.colors.ACCENT4 }, rotate: 45 })
+    }
+    else if (listtree[key].cssStyle.getAttribute('data-source') === 'text') { // 文字
+      const textProps = listtree[key].cssStyle.textContent
+      const defaltFontSize = ele.getPropertyValue('font-size') as any
+      const options: PptxGenJS.TextPropsOptions = {
+        x: (position.left - prePos.left) / 100,
+        y: (position.top - prePos.top) / 100,
+        w: (position.width + +defaltFontSize.slice(0, -2) + 8) / 100,
+        h: position.height / 100,
         fontFace: '微软雅黑',
+        fontSize: 20 * 0.75,
         color: '#000000',
         valign: 'top',
+        margin: 0 * 0.75,
+        paraSpaceBefore: 5 * 0.75,
+        lineSpacingMultiple: 0 / 1.25,
+        paraSpaceAfter: 0,
         autoFit: true,
+        charSpacing: 1, // 字符间距
       }
       const opacity = ele.getPropertyValue('opacity') as any
       if (opacity && Number(opacity) !== 0)
         options.transparency = (1 - opacity) * 100
-      slide.addText(textProps, options)
       const defaltColor = ele.getPropertyValue('color') as any
       if (defaltColor)
         options.color = formatColor(defaltColor).color
+      if (defaltFontSize)
+        options.fontSize = defaltFontSize.slice(0, -2) * 0.75
+      // const defaultFontName = ele.getPropertyValue('font-family') as any
+      // if (defaultFontName)
+      //   options.fontFace = defaultFontName.split(',')[0]
+      const letterSpacing = ele.getPropertyValue('letter-spacing') as any
+      const padding = ele.getPropertyValue('padding') as any
+      if (padding) {
+        const paddingArr = padding.split(' ')
+        if (paddingArr.length === 1) {
+          options.margin = paddingArr[0] * 0.75
+        }
+        else if (paddingArr.length === 2) {
+          options.margin = paddingArr[0] * 0.75
+          options.paraSpaceBefore = paddingArr[1] * 0.75
+        }
+        else if (paddingArr.length === 3) {
+          options.margin = paddingArr[0] * 0.75
+          options.paraSpaceBefore = paddingArr[1] * 0.75
+          options.paraSpaceAfter = paddingArr[2] * 0.75
+        }
+        else if (paddingArr.length === 4) {
+          options.margin = paddingArr[0] * 0.75
+          options.paraSpaceBefore = paddingArr[1] * 0.75
+          options.paraSpaceAfter = paddingArr[2] * 0.75
+          options.lineSpacingMultiple = paddingArr[3] / 1.25
+        }
+      }
+      letterSpacing === 'normal' && letterSpacing
+        ? options.charSpacing = 1 * 0.75
+        : options.charSpacing = letterSpacing.slice(0, -2) * 0.75
+      slide.addText(textProps, options)
     }
   }
   pptx.writeFile()
@@ -190,8 +238,8 @@ function checkButton(idx: number) {
       }"
     >
       <img v-show="imgOnLine" w100 opacity60 ma :src="imgOnLine" alt="图片" mb5 mt5 data-source="image">
-      <div mb1 data-source="shapes" b-width-2 b-red-300>
-        <p color-black data-source="text" opacity60 color-red>
+      <div mb1 data-source="shapes" b-width-2 b-red-300 bg-green-100 flex="~" justify-center items-center>
+        <p color-black text-2xl data-source="text" opacity60 color-red style="letter-spacing:4px">
           测试文字
         </p>
       </div>
