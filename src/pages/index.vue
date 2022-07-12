@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import PptxGenJS from 'PptxGenJS' // runtime
-// import PptxGenJS from 'pptxgenjs' // browser time
+// import PptxGenJS from 'PptxGenJS' // runtime
+import PptxGenJS from 'pptxgenjs' // browser time
 import tinycolor from 'tinycolor2' // https://github.com/bgrins/TinyColor
 import * as htmlToImage from 'html-to-image'
 const canvasLife = ref<HTMLElement | null>(null)
