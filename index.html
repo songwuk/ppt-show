@@ -4,11 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <title>Vitesse Lite</title>
+  <title>ppt-show</title>
   <meta name="description" content="Opinionated Vite Starter Template">
 </head>
 <body class="font-sans dark:text-white dark:bg-hex-121212">
-  <div id="app"></div>
+  <div id="app">
+    <div class="first-screen-loading" flex="~" justify-center items-center> loading...</div>
+  </div>
   <script>
     (function () {
       const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -19,4 +21,13 @@
   </script>
   <script type="module" src="/src/main.ts"></script>
 </body>
+
+<style>
+  .first-screen-loading{
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+</style>
 </html>

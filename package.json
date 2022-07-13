@@ -1,6 +1,10 @@
 {
-  "private": true,
   "packageManager": "pnpm@7.4.0",
+  "name": "ppt-show",
+  "keywords": [
+    "pptx",
+    "image"
+  ],
   "scripts": {
     "build": "vite build",
     "dev": "vite --port 3333 --open",

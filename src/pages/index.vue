@@ -132,42 +132,43 @@ function htmlToPptx() {
     else if (listtree[key].cssStyle.getAttribute('data-source') === 'shapes') { // 图形
       // ShapeType.rect
       const fillColor = formatColor(ele.getPropertyValue('border-color') as any)
+      const borderStyle = ele.getPropertyValue('border-width') as any
       const bgColor = formatColor(ele.getPropertyValue('background-color') as any)
       const opacity = ele.getPropertyValue('opacity') as any === undefined ? 1 : ele.getPropertyValue('opacity') as any
-      console.log(opacity)
-      const points = [
-        { x: 0, y: 0, moveTo: true },
-        { x: position.width / 100, y: 0, moveTo: true },
-        { x: position.width / 100, y: position.height / 100, moveTo: true },
-        { x: 0, y: position.height / 100, moveTo: true },
-        { x: 0.0, y: 0.0, curve: { type: 'quadratic', x1: 1.0, y1: 0.5 } },
-      ] as any[]
+      const points = formatPonits([
+        { x: 0, y: 0 },
+        { x: position.width / 100, y: 0 },
+        { x: position.width / 100, y: position.height / 100 },
+        { x: 0, y: position.height / 100 },
+        { x: 0, y: 0 },
+      ])
       const options: PptxGenJS.ShapeProps = {
         x: (position.left - prePos.left) / 100,
         y: (position.top - prePos.top) / 100,
         w: position.width / 100,
         h: position.height / 100,
-        line: { color: fillColor.color, width: 1 },
+        line: { color: fillColor.color, width: borderStyle.slice(0, -2) },
         fill: { color: bgColor.color, transparency: (1 - bgColor.alpha * opacity) * 100 },
         points,
       }
-      slide.addShape('CUSTOM_SHAPE' as PptxGenJS.ShapeType, options)
-      // slide.addShape(pptx.shapes.RECTANGLE, { x: 5.7, y: 0.8, w: 1.5, h: 3.0, fill: { color: pptx.colors.ACCENT4 }, rotate: 45 })
+      slide.addShape('custGeom' as PptxGenJS.ShapeType, options)
     }
     else if (listtree[key].cssStyle.getAttribute('data-source') === 'text') { // 文字
       const textProps = listtree[key].cssStyle.textContent
       const defaltFontSize = ele.getPropertyValue('font-size') as any
       const options: PptxGenJS.TextPropsOptions = {
-        x: (position.left - prePos.left) / 100,
+        x: (position.left - prePos.left - (+defaltFontSize.slice(0, -2) / 2 + 4)) / 100,
         y: (position.top - prePos.top) / 100,
         w: (position.width + +defaltFontSize.slice(0, -2) + 8) / 100,
         h: position.height / 100,
         fontFace: '微软雅黑',
         fontSize: 20 * 0.75,
         color: '#000000',
-        valign: 'top',
+        valign: 'middle',
+        align: 'center',
+        isTextBox: false,
         margin: 0 * 0.75,
-        paraSpaceBefore: 5 * 0.75,
+        paraSpaceBefore: 0 * 0.75,
         lineSpacingMultiple: 0 / 1.25,
         paraSpaceAfter: 0,
         autoFit: true,
@@ -185,28 +186,28 @@ function htmlToPptx() {
       // if (defaultFontName)
       //   options.fontFace = defaultFontName.split(',')[0]
       const letterSpacing = ele.getPropertyValue('letter-spacing') as any
-      const padding = ele.getPropertyValue('padding') as any
-      if (padding) {
-        const paddingArr = padding.split(' ')
-        if (paddingArr.length === 1) {
-          options.margin = paddingArr[0] * 0.75
-        }
-        else if (paddingArr.length === 2) {
-          options.margin = paddingArr[0] * 0.75
-          options.paraSpaceBefore = paddingArr[1] * 0.75
-        }
-        else if (paddingArr.length === 3) {
-          options.margin = paddingArr[0] * 0.75
-          options.paraSpaceBefore = paddingArr[1] * 0.75
-          options.paraSpaceAfter = paddingArr[2] * 0.75
-        }
-        else if (paddingArr.length === 4) {
-          options.margin = paddingArr[0] * 0.75
-          options.paraSpaceBefore = paddingArr[1] * 0.75
-          options.paraSpaceAfter = paddingArr[2] * 0.75
-          options.lineSpacingMultiple = paddingArr[3] / 1.25
-        }
-      }
+      // const padding = ele.getPropertyValue('padding') as any
+      // if (padding) {
+      //   const paddingArr = padding.split(' ')
+      //   if (paddingArr.length === 1) {
+      //     options.margin = paddingArr[0] * 0.75
+      //   }
+      //   else if (paddingArr.length === 2) {
+      //     options.margin = paddingArr[0] * 0.75
+      //     options.paraSpaceBefore = paddingArr[1] * 0.75
+      //   }
+      //   else if (paddingArr.length === 3) {
+      //     options.margin = paddingArr[0] * 0.75
+      //     options.paraSpaceBefore = paddingArr[1] * 0.75
+      //     options.paraSpaceAfter = paddingArr[2] * 0.75
+      //   }
+      //   else if (paddingArr.length === 4) {
+      //     options.margin = paddingArr[0] * 0.75
+      //     options.paraSpaceBefore = paddingArr[1] * 0.75
+      //     options.paraSpaceAfter = paddingArr[2] * 0.75
+      //     options.lineSpacingMultiple = paddingArr[3] / 1.25
+      //   }
+      // }
       letterSpacing === 'normal' && letterSpacing
         ? options.charSpacing = 1 * 0.75
         : options.charSpacing = letterSpacing.slice(0, -2) * 0.75
@@ -237,15 +238,23 @@ function checkButton(idx: number) {
         height: `${pptCanvasWH.height}px`,
       }"
     >
+      <button data-source="text" block>
+        测试文字1
+      </button>
       <img v-show="imgOnLine" w100 opacity60 ma :src="imgOnLine" alt="图片" mb5 mt5 data-source="image">
       <div mb1 data-source="shapes" b-width-2 b-red-300 bg-green-100 flex="~" justify-center items-center>
         <p color-black text-2xl data-source="text" opacity60 color-red style="letter-spacing:4px">
           测试文字
         </p>
       </div>
-      <button btn mb5 text-sm data-source="shapes">
+      <button btn text-sm data-source="shapes">
         <p data-source="text">
-          测试按钮
+          测试按钮1
+        </p>
+      </button>
+      <button btn mb5 text-sm data-source="shapes" block>
+        <p data-source="text">
+          测试按钮2
         </p>
       </button>
     </div>
